@@ -1,0 +1,147 @@
+{
+  "schema_version": 1,
+  "disclaimer": "This knowledge base documents how Samsung/Android management technologies work according to public vendor documentation. It does NOT provide, and WISEBREAK cannot perform, any bypass of these controls. Removing enterprise management from a managed device is controlled by the enrolling organization, not by the device holder.",
+  "technologies": [
+    {
+      "id": "knox_manage",
+      "name": "Samsung Knox Manage (KM)",
+      "category": "EMM/MDM",
+      "summary": "Samsung's cloud Enterprise Mobility Management (UEM) service. An administrator console pushes policies (profiles) to enrolled devices over the Knox agent. This is the technology the target device reports as its 'device management'.",
+      "controls": ["app allowlist/blocklist", "developer options", "usb debugging", "factory reset protection", "kiosk mode", "play store restriction"],
+      "enforced_by": "Knox Manage agent + Samsung Knox Platform for Enterprise (KPE) policy APIs under the device/profile owner.",
+      "removal": "Only the organization that enrolled the device (the EMM administrator) can release/unenroll it from the Knox Manage console, or issue an unenrollment command. There is no documented end-user bypass that preserves the device's integrity.",
+      "references": [
+        "https://docs.samsungknox.com/admin/knox-manage/",
+        "https://www.samsungknox.com/en/solutions/it-solutions/knox-manage"
+      ]
+    },
+    {
+      "id": "knox_mobile_enrollment",
+      "name": "Knox Mobile Enrollment (KME)",
+      "category": "Zero-touch enrollment",
+      "summary": "Binds a device (by IMEI/serial) to a reseller/organization at the Samsung cloud level so that on first boot or factory reset it automatically re-enrolls into the organization's EMM.",
+      "controls": ["auto re-enrollment after factory reset", "assignment of EMM at provisioning time"],
+      "enforced_by": "Samsung cloud + device bootstrap; checked during setup wizard.",
+      "removal": "The reseller/organization must delete the device from the KME portal. A factory reset alone will typically RE-ENROLL the device, not free it.",
+      "references": [
+        "https://docs.samsungknox.com/admin/knox-mobile-enrollment/",
+        "https://www.samsungknox.com/en/solutions/it-solutions/knox-mobile-enrollment"
+      ]
+    },
+    {
+      "id": "knox_guard",
+      "name": "Knox Guard (KG)",
+      "category": "Device financing / lock",
+      "summary": "Lets an operator remotely lock or restrict a device (commonly for financing/leasing). Can display lock screens and disable functionality if payment or policy conditions are not met.",
+      "controls": ["remote lock", "SIM control", "relock after reset"],
+      "enforced_by": "Knox Guard agent + Samsung cloud.",
+      "removal": "Only the Knox Guard operator can release the device from the KG portal.",
+      "references": [
+        "https://docs.samsungknox.com/admin/knox-guard/",
+        "https://www.samsungknox.com/en/solutions/it-solutions/knox-guard"
+      ]
+    },
+    {
+      "id": "android_device_owner",
+      "name": "Android Device Owner (DO)",
+      "category": "Android Enterprise provisioning mode",
+      "summary": "The most privileged Android Enterprise mode. A single Device Policy Controller (DPC) app owns the entire device and can set restrictions across the whole user. Fully-managed devices run in this mode.",
+      "controls": ["DISALLOW_INSTALL_APPS", "DISALLOW_DEBUGGING_FEATURES", "DISALLOW_USB_FILE_TRANSFER", "setApplicationHidden", "factory reset protection"],
+      "enforced_by": "Android framework (DevicePolicyManager) enforcing the DPC's policies.",
+      "removal": "A Device Owner can only be removed by the DPC itself (wipe/relinquish) or by factory reset where no KME re-enrollment is configured. The user cannot unilaterally remove a Device Owner from an unrooted device.",
+      "references": [
+        "https://developer.android.com/work/dpc/build-dpc",
+        "https://source.android.com/docs/devices/admin"
+      ]
+    },
+    {
+      "id": "android_enterprise",
+      "name": "Android Enterprise",
+      "category": "Management framework",
+      "summary": "Google's framework for managing Android in organizations (work profile, fully managed, dedicated/kiosk). Knox Manage builds on Android Enterprise plus Samsung's KPE extensions.",
+      "controls": ["user restrictions (UserManager constants)", "managed configurations", "app distribution via Managed Google Play"],
+      "enforced_by": "Android framework DevicePolicyManager + DPC.",
+      "removal": "Determined by the provisioning mode (see Device Owner / Work Profile).",
+      "references": [
+        "https://developer.android.com/work/overview",
+        "https://source.android.com/docs/devices/admin"
+      ]
+    },
+    {
+      "id": "managed_google_play",
+      "name": "Managed Google Play",
+      "category": "App distribution",
+      "summary": "An enterprise-curated version of the Play Store. The administrator chooses which apps appear and can be installed; everything else is hidden/blocked. This is a common reason 'unapproved Play Store apps' cannot be installed.",
+      "controls": ["app allowlist", "private app hosting", "auto-install / auto-update policy"],
+      "enforced_by": "Play Store app honoring the managed account + DPC.",
+      "removal": "Controlled by the EMM administrator.",
+      "references": [
+        "https://developer.android.com/work/play/emm-api",
+        "https://support.google.com/work/android/answer/7042221"
+      ]
+    },
+    {
+      "id": "kpe",
+      "name": "Samsung Knox Platform for Enterprise (KPE)",
+      "category": "Policy API layer",
+      "summary": "Samsung's set of enterprise APIs layered on Android Enterprise, giving finer-grained control than stock Android (e.g., granular hardware, firmware update, and security policies). Knox Manage uses KPE to enforce many restrictions.",
+      "controls": ["granular hardware controls", "firmware update control (E-FOTA)", "certificate/VPN policy", "fine-grained restriction policies"],
+      "enforced_by": "Samsung Knox framework on the device under an activated KPE license.",
+      "removal": "Policies are lifted when the managing EMM releases them or the device is unenrolled by the administrator.",
+      "references": [
+        "https://docs.samsungknox.com/dev/knox-sdk/",
+        "https://www.samsungknox.com/en/solutions/it-solutions/knox-platform-for-enterprise"
+      ]
+    }
+  ],
+  "restriction_explanations": {
+    "apk_installation": {
+      "observed": "Sideloading/installing APKs is blocked.",
+      "likely_policies": [
+        "UserManager.DISALLOW_INSTALL_UNKNOWN_SOURCES / DISALLOW_INSTALL_APPS set by a Device Owner",
+        "Samsung KPE application-install allowlist restricting package installers"
+      ],
+      "legitimate_control": "The EMM administrator (Knox Manage) sets these. They are lifted by the administrator unenrolling the device or changing the policy profile.",
+      "not_an_exploit": true
+    },
+    "developer_options": {
+      "observed": "Developer Options are hidden/disabled by policy.",
+      "likely_policies": [
+        "UserManager.DISALLOW_DEBUGGING_FEATURES set by a Device Owner",
+        "Samsung KPE policy hiding the developer settings entry"
+      ],
+      "legitimate_control": "Administrator-controlled via the management profile.",
+      "not_an_exploit": true
+    },
+    "usb_debugging": {
+      "observed": "USB debugging (ADB) is disabled and cannot be enabled.",
+      "likely_policies": [
+        "DISALLOW_DEBUGGING_FEATURES implies ADB over USB is unavailable",
+        "ADB interface will not be exposed on USB while this restriction is active"
+      ],
+      "legitimate_control": "Administrator-controlled. This is why the host sees MTP/RNDIS but no ADB interface.",
+      "not_an_exploit": true
+    },
+    "unapproved_play_store": {
+      "observed": "Only approved Play Store apps can be installed.",
+      "likely_policies": [
+        "Managed Google Play allowlist",
+        "Account-level enterprise restrictions"
+      ],
+      "legitimate_control": "Administrator-curated app catalog via the EMM.",
+      "not_an_exploit": true
+    }
+  },
+  "ownership_guidance": {
+    "summary": "For an owner who wishes to restore unrestricted Android on a device they legally own, the documented, integrity-preserving path is administrative, not technical.",
+    "options": [
+      "Contact the seller/organization that provisioned the device and request release from Knox Mobile Enrollment and unenrollment from Knox Manage. This is the only path that cleanly removes management without fighting the device.",
+      "If the device was sold as an unlocked consumer device by mistake, the seller can remove it from the KME portal; after that a factory reset will not re-enroll it.",
+      "Carrier/retail devices sometimes have bootloader-unlock restrictions (e.g., U1 vs U firmware, OEM-unlock policy). Whether an owner-authorized unlock exists is model- and carrier-specific and must be verified against official Samsung/carrier documentation — WISEBREAK reports this as 'insufficient evidence' unless a verifiable official source is found."
+    ],
+    "cautions": [
+      "A factory reset on a KME-bound device typically re-enrolls it, not frees it.",
+      "WISEBREAK does not and will not attempt to remove, disable, or bypass management. It documents the architecture so the owner can pursue the correct administrative route."
+    ]
+  }
+}

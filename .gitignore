@@ -1,0 +1,22 @@
+__pycache__/
+*.py[cod]
+*.egg-info/
+.eggs/
+build/
+dist/
+.venv/
+venv/
+.pytest_cache/
+.ruff_cache/
+*.db
+*.db-wal
+*.db-shm
+*.log
+# Never commit firmware images or captured data
+*.zip
+*.tar
+*.tar.md5
+*.img
+*.lz4
+captures/
+!reports/sample_report.md

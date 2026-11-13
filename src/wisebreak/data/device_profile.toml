@@ -1,0 +1,50 @@
+# Reference profile for the target device under investigation.
+# This is OPERATOR-SUPPLIED reference data, not the result of a live scan.
+# WISEBREAK will compare live observations against this profile and flag
+# mismatches. Nothing here is treated as "confirmed" until a scan corroborates it.
+
+[device]
+marketing_name = "Wisephone II"
+hardware_basis = "Samsung Galaxy A17 5G"
+model = "SM-A176U1"
+csc = "XAA"
+android_version = "17"
+firmware = "A176U1UEU8CZJA"
+build = "CP2A.260605.016.A176U1UEU8CZJA"
+knox_version = "3.14"
+knox_api_level = "41"
+device_management = "Samsung Knox Manage"
+
+# USB identifiers the operator has observed. Used to label live USB matches.
+# These are well-known Samsung composite-gadget IDs, not exploit indicators.
+[[usb_ids]]
+vid = "04e8"
+pid = "6860"
+label = "Samsung MTP (Media Transfer Protocol)"
+
+[[usb_ids]]
+vid = "04e8"
+pid = "6863"
+label = "Samsung RNDIS / USB tethering"
+
+[[usb_ids]]
+vid = "04e8"
+pid = "685d"
+label = "Samsung Download Mode (Odin) — observe only, do NOT flash"
+
+[[usb_ids]]
+vid = "04e8"
+pid = "685e"
+label = "Samsung ADB composite (only if USB debugging is enabled)"
+
+# Restrictions the operator reports as active. Each is a hypothesis to be
+# explained by the Knox module, not a confirmed exploit target.
+[restrictions]
+apk_installation = "blocked"
+developer_options = "blocked"
+usb_debugging = "blocked"
+unapproved_play_store = "blocked"
+adb = "not_detected"
+
+[notes]
+ownership = "Device is personally owned by the operator. All investigation is read-only and owner-authorized."
